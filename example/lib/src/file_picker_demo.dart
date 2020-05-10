@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:html' as html;
 
 class FilePickerDemo extends StatefulWidget {
   @override
@@ -28,17 +29,23 @@ class _FilePickerDemoState extends State<FilePickerDemo> {
 
   void _openFileExplorer() async {
     setState(() => _loadingPath = true);
+    List<String> allowedExtensions = (_extension?.isNotEmpty ?? false) ? _extension?.replaceAll(' ', '')?.split(',') : null;
     try {
       if (kIsWeb) {
-        _multiPick ? FilePicker.getMultiFile() : FilePicker.getFile();
+        if (_multiPick) {
+          _path = null;
+          final list = (await FilePicker.getMultiFile(type: _pickingType, allowedExtensions: allowedExtensions)).map((e) => e.name);
+          _paths = Map.fromIterable(list);
+        } else {
+          _paths = null;
+          _path = (await FilePicker.getFile(type: _pickingType, allowedExtensions: allowedExtensions) as html.File).name;
+        }
       } else if (_multiPick) {
         _path = null;
-        _paths = await FilePicker.getMultiFilePath(
-            type: _pickingType, allowedExtensions: (_extension?.isNotEmpty ?? false) ? _extension?.replaceAll(' ', '')?.split(',') : null);
+        _paths = await FilePicker.getMultiFilePath(type: _pickingType, allowedExtensions: allowedExtensions);
       } else {
         _paths = null;
-        _path = await FilePicker.getFilePath(
-            type: _pickingType, allowedExtensions: (_extension?.isNotEmpty ?? false) ? _extension?.replaceAll(' ', '')?.split(',') : null);
+        _path = await FilePicker.getFilePath(type: _pickingType, allowedExtensions: allowedExtensions);
       }
     } on PlatformException catch (e) {
       print("Unsupported operation" + e.toString());
@@ -143,10 +150,12 @@ class _FilePickerDemoState extends State<FilePickerDemo> {
                         onPressed: () => _openFileExplorer(),
                         child: Text("Open file picker"),
                       ),
-                      RaisedButton(
-                        onPressed: () => _clearCachedFiles(),
-                        child: Text("Clear temporary files"),
-                      ),
+                      !kIsWeb
+                          ? RaisedButton(
+                              onPressed: () => _clearCachedFiles(),
+                              child: Text("Clear temporary files"),
+                            )
+                          : Container(),
                     ],
                   ),
                 ),

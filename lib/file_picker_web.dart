@@ -8,36 +8,52 @@ abstract class FilePickerInterface {
   FilePickerInterface._();
 
   static Future<File> getFile({FileType type = FileType.any, List<String> allowedExtensions}) async {
-    List<File> files = await _handleGetFile(type, false);
+    List<File> files = await _handleGetFiles(type, false, allowedExtensions);
     return files?.first;
   }
 
-  static Future<String> getFilePath({FileType type = FileType.any, List<String> allowedExtensions}) async =>
-      throw UnimplementedError('Unsupported');
-
   static Future<List<File>> getMultiFile({FileType type = FileType.any, List<String> allowedExtensions}) async =>
-      _handleGetFile(type, true);
+      await _handleGetFiles(type, true, allowedExtensions);
+
+  static Future<String> getFilePath({FileType type = FileType.any, List<String> allowedExtensions}) async =>
+      throw UnimplementedError('Unsupported on Flutter Web');
 
   static Future<Map<String, String>> getMultiFilePath({FileType type = FileType.any, List<String> allowedExtensions}) async =>
-      throw UnimplementedError('Unsupported Platform for file_picker_cross');
+      throw UnimplementedError('Unsupported on Flutter Web');
 
-  static Future<bool> clearTemporaryFiles() async => throw UnimplementedError('Unsupported');
+  static Future<bool> clearTemporaryFiles() async => throw UnimplementedError('Unsupported on Flutter Web');
 
-  /// Returns a `List<html.File>` with picked file(s) to be used in a web context.
-  /// Allows setting [allowMultiple] for multiple file picking (defaults to `false`).
-  ///
-  /// **IMPORTANT:** Have in mind that if you specify a type when picking (eg. by not using `var` or `final`),
-  /// you should define it as `html.File` by for example importing
-  /// ```
-  /// import 'dart:html' as html;
-  /// ```
-  /// otherwise it could be jumbled with Dart IO File object and throw an error.
-  static Future<List<File>> _handleGetFile(FileType type, bool allowMultiple) async {
+  static Future<List<File>> _handleGetFiles(FileType type, bool allowMultiple, List<String> allowedExtensions) async {
     final Completer<List<File>> pickedFiles = Completer<List<File>>();
     InputElement uploadInput = FileUploadInputElement();
     uploadInput.multiple = allowMultiple;
+    uploadInput.accept = _fileType(type, allowedExtensions);
     uploadInput.click();
     uploadInput.onChange.listen((event) => pickedFiles.complete(uploadInput.files));
     return await pickedFiles.future;
+  }
+
+  static String _fileType(FileType type, List<String> allowedExtensions) {
+    switch (type) {
+      case FileType.any:
+        return '';
+
+      case FileType.audio:
+        return 'audio/*';
+
+      case FileType.image:
+        return 'image/*';
+
+      case FileType.video:
+        return 'video/*';
+
+      case FileType.media:
+        return 'video/*|image/*';
+
+      case FileType.custom:
+        return allowedExtensions.reduce((value, element) => '$value,$element');
+        break;
+    }
+    return '';
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' if (dart.library.html) 'dart:html';
 
 import 'file_picker_io.dart' if (dart.library.html) 'file_picker_web.dart';
 
@@ -36,14 +35,14 @@ abstract class FilePicker {
   ///
   /// This is an utility method that does the same of `getFilePath()` but saving some boilerplate if
   /// you are planing to create a `File` for the returned path.
-  static Future<File> getFile({FileType type = FileType.any, List<String> allowedExtensions}) async =>
+  static Future<dynamic> getFile({FileType type = FileType.any, List<String> allowedExtensions}) async =>
       FilePickerInterface.getFile(type: type, allowedExtensions: allowedExtensions);
 
   /// Returns a `List<File>` object from the selected files paths.
   ///
   /// This is an utility method that does the same of `getMultiFilePath()` but saving some boilerplate if
   /// you are planing to create a list of `File`s for the returned paths.
-  static Future<List<File>> getMultiFile({FileType type = FileType.any, List<String> allowedExtensions}) async =>
+  static Future<List<dynamic>> getMultiFile({FileType type = FileType.any, List<String> allowedExtensions}) async =>
       FilePickerInterface.getMultiFile(type: type, allowedExtensions: allowedExtensions);
 
   /// Asks the underlying platform to remove any temporary files created by this plugin.
